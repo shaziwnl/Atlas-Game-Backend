@@ -81,7 +81,7 @@ app.post('/signup', async (req, res) => {
   let user = await User.findOne({username});
   if (user) {
     console.log('Username already exists');
-    res.status(409).json({ message: 'Username already exists' });
+    res.status(200).json({ message: 'Username already exists' });
   } else {
     const hashedPassword = await brcypt.hash(password, 10);
     const newUser = new User({ firstName, lastName, username, hashedPassword });
@@ -101,10 +101,10 @@ app.post('/login', async (req, res) => {
       const token = generateJWT(username);
       res.status(200).json({ message: 'Logged in', errorAlert: false, token});
     } else {
-      res.status(401).json({ message: 'Incorrect Password', errorAlert: true });
+      res.status(200).json({ message: 'Incorrect Password', errorAlert: true });
     }
   } else {
-    res.status(404).json({ message: 'User not found', errorAlert: true });
+    res.status(200).json({ message: 'User not found', errorAlert: true });
   }
 })
 
