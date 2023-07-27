@@ -8,7 +8,7 @@ const mongoose = require('mongoose')
 const app = express();
 const http = require('http');
 const { Server } = require('socket.io');
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 require('dotenv').config();
 
