@@ -2,19 +2,21 @@ const bodyParser = require('body-parser');
 const opencage = require('opencage-api-client');
 const express = require('express');
 const cors = require('cors');
-const { uuid } = require('uuidv4');
+const jwt = require('jsonwebtoken');
 const brcypt = require('bcrypt');
 const mongoose = require('mongoose')
 const app = express();
 const http = require('http');
 const { Server } = require('socket.io');
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 require('dotenv').config();
 
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cors());
+
+
 
 const userSchema = new mongoose.Schema({
   firstName: String,
@@ -27,7 +29,7 @@ const User = mongoose.model('User', userSchema);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: 'https://atlas-game.netlify.app',
     methods: ['GET', 'POST']
   }
 });
@@ -43,7 +45,6 @@ io.on("connection", (socket) => {
 
   socket.on('join_room', (room) => {
     let roomSize = io.sockets.adapter.rooms.get(room)?.size || 0;
-    console.log(roomSize);
     if (roomSize < 2) {
       socket.join(room);
       console.log('user joined with id', socket.id, 'joined room', room);
@@ -67,17 +68,13 @@ io.on("connection", (socket) => {
 
 mongoose.connect(`mongodb+srv://Shaz101:${process.env.DB_PASSWORD}@atlas-game-db.x8p2fc3.mongodb.net/app`, { useNewUrlParser: true, useUnifiedTopology: true, dbName: "app" });
 
-// let Prev = "atlas";
-// let guesses = [];
+const secret = process.env.JWT_SECRET
 
-app.get('/users', async (req, res) => {
-  const users = await User.find({});
-  res.json(users);
-})
+function generateJWT(username) {
+  const payload = {username};
+  return jwt.sign(payload, secret, {expiresIn: '2h'});
+}
 
-app.get('/guesses', (req, res) => {
-  res.json(guesses);
-})
 
 app.post('/signup', async (req, res) => {
   const { firstName, lastName, username, password } = req.body;  
@@ -101,18 +98,14 @@ app.post('/login', async (req, res) => {
   if (user) {
     const passwordMatch = await brcypt.compare(password, user.hashedPassword);
     if (passwordMatch) {
-      res.status(200).json({ message: 'Logged in', errorAlert: false });
+      const token = generateJWT(username);
+      res.status(200).json({ message: 'Logged in', errorAlert: false, token});
     } else {
       res.status(200).json({ message: 'Incorrect Password', errorAlert: true });
     }
   } else {
     res.status(200).json({ message: 'User not found', errorAlert: true });
   }
-})
-
-
-app.post('/reset', (req, res) => {
-  res.sendStatus(200);
 })
 
 
@@ -146,8 +139,6 @@ app.post('/guess', (req, res) => {
               // console.log(place.components._type)
             } else { //if there is no result
               res.status(200).json({ message: "Invalid Guess", error: true});
-              // console.log('Status', data.status.message);
-              // console.log('total_results', data.total_results);
             }
           })
           .catch((error) => {
@@ -165,7 +156,3 @@ app.post('/guess', (req, res) => {
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
-
-
-
-
