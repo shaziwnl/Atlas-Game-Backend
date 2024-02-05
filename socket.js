@@ -20,11 +20,11 @@ io.on("connection", (socket) => {
   
 
   socket.on('join_room', (room) => {
-    let roomSize = io.sockets.adapter.rooms.get(room)?.size || 0;
+    let roomSize = io.sockets.adapter.rooms.get(room) ? io.sockets.adapter.rooms.get(room).size : 0;
+    console.log(roomSize)
     if (roomSize < 2) {
       socket.join(room);
       console.log('user joined with id', socket.id, 'joined room', room);
-      console.log(roomSize);
     } else {
       console.log('room is full!');
     }
