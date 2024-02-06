@@ -6,7 +6,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: 'https://atlas-game.netlify.app',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST']
   }
 });
@@ -25,8 +25,10 @@ io.on("connection", (socket) => {
     if (roomSize < 2) {
       socket.join(room);
       console.log('user joined with id', socket.id, 'joined room', room);
+      socket.emit('join_success', "Connection Successful!")
     } else {
       console.log('room is full!');
+      socket.emit('join_fail', "Connection Rejected");
     }
   });
 
