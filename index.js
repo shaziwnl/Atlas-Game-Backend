@@ -14,7 +14,6 @@ app.use(cors());
 // Routes
 const auth = require('./routes/auth')
 const game = require('./routes/game')
-const server = require('./socket')
 app.use('/', auth)
 app.use('/', game)
 
@@ -22,6 +21,8 @@ app.use('/', game)
 require('dotenv').config();
 
 module.exports = app
+
+const server = require('./socket')
 
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
