@@ -1,12 +1,12 @@
 const http = require('http');
 const { Server } = require('socket.io');
 const app = require('./index')
-
+require('dotenv').config
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: 'https://atlas-game.netlify.app',
+    origin: process.env.URL,
     methods: ['GET', 'POST']
   }
 });
@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on('resign', (room) => {
-    socket.to(room).emit('lost', room)
+    socket.to(room).emit('you_won', room)
   })
 });
 

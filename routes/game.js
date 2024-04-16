@@ -3,10 +3,21 @@ const router = express.Router()
 const opencage = require('opencage-api-client');
 
 let GlobalGuesses = {}
+let GlobalTurn = {}
 
-router.get('/guesses/:roomId', (req, res) => {
+router.get('/guesses/:roomId/:token', (req, res) => {
   const roomId = req.params.roomId;
-  res.status(200).json({guesses: GlobalGuesses[roomId] || []})
+  const turn = req.params.token !== GlobalTurn[roomId]
+  res.status(200).json({guesses: GlobalGuesses[roomId] || [], turn})
+})
+
+router.post('/guesses/:roomId', (req,res) => {
+  console.log(GlobalGuesses, GlobalTurn)
+  const roomId = req.params.roomId;
+  delete GlobalGuesses[roomId];
+  delete GlobalTurn[roomId];
+  console.log(GlobalGuesses, GlobalTurn)
+  res.status(200).json("Successfully left")
 })
 
 router.post('/guess', (req, res) => {
@@ -14,9 +25,11 @@ router.post('/guess', (req, res) => {
     let guess = req.body.guess;
     let prev = req.body.prev;
     let room = req.body.room;
+    let token = req.body.token;
     guess = guess.trim();
     guess = guess.toLowerCase();
     if (guess[0] !== prev[prev.length - 1]) {
+        console.log("Hi from guess[0] check")
         res.status(200).json({ message: `Your guess must start with '${prev[prev.length - 1]}'`, error: true }); //Do not change the control
     } else {
         opencage
@@ -32,7 +45,10 @@ router.post('/guess', (req, res) => {
                 } else {
                   prev = guess;
                   guesses.push(guess);
+                  
                   GlobalGuesses[room] = guesses;
+                  GlobalTurn[room] = token;
+                  
                   res.status(200).json({ message: "Valid Guess", prev, guesses, error: false }); //we also need to send the control to the second user
                 }
               } else {
